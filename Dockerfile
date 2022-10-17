@@ -15,9 +15,7 @@ COPY src/hashes requirements.txt ./
 
 # Download sources and verify hashes
 RUN wget -O "${ARCHIVE}" "https://weewx.com/downloads/released_versions/${ARCHIVE}"
-RUN wget -O weewx-mqtt.zip https://github.com/matthewwall/weewx-mqtt/archive/master.zip
-RUN wget -O weewx-interceptor.zip https://github.com/matthewwall/weewx-interceptor/archive/master.zip
-RUN sha256sum -c < hashes
+RUN wget -O weewx-weatherflowudp.zip https://github.com/captain-coredump/weatherflow-udp/archive/master.zip
 
 # WeeWX setup
 RUN tar --extract --gunzip --directory ${WEEWX_HOME} --strip-components=1 --file "${ARCHIVE}"
@@ -30,8 +28,7 @@ RUN pip install --no-cache --requirement requirements.txt
 
 WORKDIR ${WEEWX_HOME}
 
-RUN bin/wee_extension --install /tmp/weewx-mqtt.zip
-RUN bin/wee_extension --install /tmp/weewx-interceptor.zip
+RUN bin/wee_extension --install /tmp/weewx-weatherflowudp.zip
 COPY src/entrypoint.sh src/version.txt ./
 
 FROM python:3.10.7-slim-bullseye as final-stage
@@ -41,11 +38,6 @@ ARG WEEWX_UID=421
 ENV WEEWX_HOME="/home/weewx"
 ENV WEEWX_VERSION="4.8.0"
 
-# For a list of pre-defined annotation keys and value types see:
-# https://github.com/opencontainers/image-spec/blob/master/annotations.md
-# Note: Additional labels are added by the build workflow.
-LABEL org.opencontainers.image.authors="markf+github@geekpad.com"
-LABEL org.opencontainers.image.vendor="Geekpad"
 LABEL com.weewx.version=${WEEWX_VERSION}
 
 RUN addgroup --system --gid ${WEEWX_UID} weewx \
